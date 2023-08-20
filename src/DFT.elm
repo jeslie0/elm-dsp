@@ -1,4 +1,4 @@
-module Fourier exposing (dft, dftFloat, dftInt)
+module DFT exposing (dft, dftFloat, dftInt)
 
 import Array exposing (Array)
 import Complex exposing (Complex, add, multiply, polar, real, zero)
