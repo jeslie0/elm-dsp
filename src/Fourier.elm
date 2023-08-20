@@ -1,42 +1,39 @@
-module Fourier exposing (..)
+module Fourier exposing (dft, dftFloat, dftInt)
 
 import Array exposing (Array)
-import Complex exposing (..)
-import List as L exposing (..)
+import Complex exposing (Complex, add, multiply, polar, real, zero)
 
 
-fourier : Array Float -> Array Float
-fourier array =
+dft : Array Complex -> Array Complex
+dft array =
     let
-        n =
+        size =
             Array.length array
 
-        func k =
-            Array.map
-                (\j ->
-                    case Array.get j array of
-                        Nothing ->
-                            zero
+        indexArray =
+            Array.initialize size identity
 
-                        Just xn ->
-                            multiply (real xn) <| polar 1 <| pi * (toFloat <| 2 * j * k) / toFloat n
-                )
-                (Array.initialize n (\i -> i))
-    in
-    Array.map (\k -> .abs << Complex.toPolar << Array.foldl add zero <| func k) <|
-        Array.initialize n (\i -> i)
-
-
-complexListToPlot : List Complex -> List { x : Float, y : Float, z : Float }
-complexListToPlot =
-    L.indexedMap
-        (\n z ->
+        foldFunction n k acc =
             let
-                cartZ =
-                    toCartesian z
+                hk =
+                    Maybe.withDefault zero <| Array.get k array
+
+                expTerm =
+                    polar 1 <| 2 * pi * (toFloat <| k * n) / toFloat size
             in
-            { x = toFloat n
-            , y = cartZ.re
-            , z = cartZ.im
-            }
-        )
+            acc |> add (hk |> multiply expTerm)
+
+        fourierFunction n =
+            Array.foldl (foldFunction n) zero indexArray
+    in
+    Array.map fourierFunction indexArray
+
+
+dftInt : Array Int -> Array Complex
+dftInt =
+    dft << Array.map (real << toFloat)
+
+
+dftFloat : Array Float -> Array Complex
+dftFloat =
+    dft << Array.map real
